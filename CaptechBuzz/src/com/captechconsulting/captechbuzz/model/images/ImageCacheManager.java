@@ -9,6 +9,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageLoader.ImageCache;
 import com.android.volley.toolbox.ImageLoader.ImageListener;
 import com.captechconsulting.captechbuzz.model.RequestManager;
+import com.captechconsulting.captechbuzz.model.group.MD5;
 
 /**
  * Implementation of volley's ImageCache interface. This manager tracks the application image loader and cache. 
@@ -23,14 +24,14 @@ public class ImageCacheManager{
 	 * Volley recommends in-memory L1 cache but both a disk and memory cache are provided.
 	 * Volley includes a L2 disk cache out of the box but you can technically use a disk cache as an L1 cache provided
 	 * you can live with potential i/o blocking. 
-	 *
 	 */
-	public enum CacheType {
-		DISK
-		, MEMORY
-	}
-	
+
 	private static ImageCacheManager mInstance;
+
+    /**
+     * Image cache implementation
+     */
+	private BitmapLruImageCache mMemoryCache;
 	
 	/**
 	 * Volley image loader 
@@ -38,10 +39,10 @@ public class ImageCacheManager{
 	private ImageLoader mImageLoader;
 
 	/**
-	 * Image cache implementation
+	 * Image disk cache implementation
 	 */
-	private ImageCache mImageCache;
-	
+	private DiskLruImageCache mImageCache;
+
 	/**
 	 * @return
 	 * 		instance of the cache manager
@@ -66,19 +67,11 @@ public class ImageCacheManager{
 	 * 			file type compression format.
 	 * @param quality
 	 */
-	public void init(Context context, String uniqueName, int cacheSize, CompressFormat compressFormat, int quality, CacheType type){
-		switch (type) {
-		case DISK:
-			mImageCache= new DiskLruImageCache(context, uniqueName, cacheSize, compressFormat, quality);
-			break;
-		case MEMORY:
-			mImageCache = new BitmapLruImageCache(cacheSize);
-		default:
-			mImageCache = new BitmapLruImageCache(cacheSize);
-			break;
-		}
-		
-		mImageLoader = new ImageLoader(RequestManager.getRequestQueue(), mImageCache);
+	public void init(Context context, String uniqueName, int cacheSize, CompressFormat compressFormat,
+					 int quality){
+        mImageCache= new DiskLruImageCache(context, uniqueName, cacheSize, compressFormat, quality);
+        mMemoryCache = new BitmapLruImageCache(cacheSize);
+        mImageLoader = new ImageLoader(RequestManager.getRequestQueue(), mMemoryCache);
 	}
 	
 	public Bitmap getBitmap(String url) {
@@ -125,7 +118,7 @@ public class ImageCacheManager{
 	 * 		cache key value
 	 */
 	private String createKey(String url){
-		return String.valueOf(url.hashCode());
+		return MD5.getData(url);
 	}
 	
 	

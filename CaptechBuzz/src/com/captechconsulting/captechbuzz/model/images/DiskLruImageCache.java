@@ -12,6 +12,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.util.Log;
 
 import com.android.volley.toolbox.ImageLoader.ImageCache;
@@ -56,9 +57,27 @@ public class DiskLruImageCache implements ImageCache  {
         }
     }
 
-    private File getDiskCacheDir(Context context, String uniqueName) {
+    /**
+     * Get a usable cache directory (external if available, internal otherwise).
+     * 根据传入的uniqueName获取硬盘缓存的路径地址。
+     * @param context
+     *            The context to use
+     * @param uniqueName
+     *            A unique directory name to append to the cache dir
+     * @return The cache dir
+     */
+    public static File getDiskCacheDir(Context context, String uniqueName) {
+        // Check if media is mounted or storage is built-in, if so, try and use
+        // external cache dir
+        // otherwise use internal cache dir
+        String cachePath;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) {
+            cachePath = context.getExternalCacheDir().getPath();
+        } else {
+            cachePath = context.getCacheDir().getPath();
+        }
 
-        final String cachePath = context.getCacheDir().getPath();
         return new File(cachePath + File.separator + uniqueName);
     }
 

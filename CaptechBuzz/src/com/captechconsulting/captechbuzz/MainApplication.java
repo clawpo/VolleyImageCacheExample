@@ -39,10 +39,9 @@ public class MainApplication extends Application {
 	 */
 	private void createImageCache(){
 		ImageCacheManager.getInstance().init(this,
-				this.getPackageCodePath()
+				"pic"
 				, DISK_IMAGECACHE_SIZE
 				, DISK_IMAGECACHE_COMPRESS_FORMAT
-				, DISK_IMAGECACHE_QUALITY
-				, CacheType.MEMORY);
+				, DISK_IMAGECACHE_QUALITY);
 	}
 }
